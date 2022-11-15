@@ -4,14 +4,14 @@ import * as fs from "fs"; // write to filesystem... We can use this to add downl
 import * as path from "path";
 import * as urlParser from "url";
 
-const checkURL = (link: string) => {
+const checkURL = (link: string, host:any, protocol:any) => {
 	// Check that each link you are crawlling is appendable
 	if (link.includes(`http`)) {
 		return link;
 	} else if (link.startsWith("/")) {
-		return `http://localhost:10000${link}`;
+		return `${protocol}//${host}${link}`;
 	} else {
-		return `http://localhost:10000/${link}`;
+		return `${protocol}//${host}/${link}`;
 	}
 };
 
@@ -21,6 +21,9 @@ const crawl = async ({ url }: any) => {
 	if (seenURL[url]) return;
 	console.log("crawling", url);
 	seenURL[url] = true;
+
+	const { host, protocol }: any = urlParser.parse(url);
+
 	const response = await fetch(url);
 	const html = await response.text();
 	// console.log("html", html);
@@ -37,9 +40,9 @@ const crawl = async ({ url }: any) => {
 		.get();
 
 	imagesURLs.forEach((imageURL) => {
-		fetch(checkURL(imageURL)).then((response) => {
+		fetch(checkURL(imageURL, host, protocol)).then((response) => {
 			const filename = path.basename(imageURL);
-			const dest = fs.createWriteStream(`${filename}`); // Add distination 
+			const dest = fs.createWriteStream(`${filename}`); // Add distination
 			response.body.pipe(dest);
 		});
 	});
@@ -47,17 +50,15 @@ const crawl = async ({ url }: any) => {
 	console.log(links);
 	console.log("images", imagesURLs);
 
-	const { host }:any = urlParser.parse(url);
-
 	links
 		.filter((link) => link.includes(host))
 		.forEach((link) => {
 			crawl({
-				url: checkURL(link),
+				url: checkURL(link,host,protocol),
 			});
 		});
 };
 
 crawl({
-	url: "", // Add Site URL here
+	url: "https://www.obinnaspeaks.dev/", // Add Site URL here
 });
