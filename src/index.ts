@@ -22,14 +22,13 @@ const seenURL: any = {};
 const crawl = async ({ url }: { url: string }) => {
 	if (seenURL[url]) return;
 	console.log("crawling", url);
-	seenURL[url] = true;
 
-	type NewType = {
+	type ParserType = {
 		host: string ;
 		protocol: string;
 	};
 
-	const { host, protocol }: NewType = urlParser.parse(url) as NewType;
+	const { host, protocol }: ParserType = urlParser.parse(url) as ParserType;
 
 	const response = await fetch(url);
 	const html = await response.text();
